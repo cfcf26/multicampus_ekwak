@@ -40,31 +40,38 @@
 
 ---
 
-#### 페이즈 1: 데이터 준비/정제 (1~2일)
+#### 페이즈 1: 데이터 준비/정제 (1~2일) ✅ **완료**
 목표: 대시보드에 바로 쓰기 좋은 “롱 포맷(행)” 테이블로 변환하고, 결측/타입 이슈를 제거.
 
 작업
-- CSV 로드(인코딩 확인) 및 컬럼 정리
-- 시간 컬럼 unpivot(가로→세로)
-  - 변환 후 컬럼 예: `weekday, line, station_id, station_name, direction, time_slot, congestion`
-- 숫자 파싱
-  - 값에 공백이 섞여 있으므로 trim 후 float 변환
-- 결측/0.0 처리(페이즈 0에서 확정한 규칙 적용)
-- 시간 정렬용 키 생성
-  - `time_slot`(표시용) + `time_order`(정렬용, 0..n)
-- 파생 컬럼(선택)
-  - `hour`, `minute`, `period`(출근/퇴근/기타)
+- [x] CSV 로드(인코딩 확인) 및 컬럼 정리
+- [x] 시간 컬럼 unpivot(가로→세로)
+  - 변환 후 컬럼: `weekday, line, station_id, station_name, direction, time_slot, time_order, congestion, hour, period, is_missing`
+  - 원본 1,671행 × 44컬럼 → 변환 후 65,169행 × 11컬럼
+- [x] 숫자 파싱
+  - 값에 공백 제거 후 float 변환 완료
+- [x] 결측/0.0 처리
+  - `is_missing` 컬럼으로 결측/미운행 구간 표시 (3,693개, 5.67%)
+- [x] 시간 정렬용 키 생성
+  - `time_slot`(표시용: "05:30") + `time_order`(정렬용: 0~38)
+- [x] 파생 컬럼
+  - `hour`: 시간 추출 (5~24)
+  - `period`: 시간대 구분 (새벽/출근/오전/오후/퇴근/저녁/심야)
 
 성능/재사용
-- 정제 결과를 `parquet`(권장) 또는 정제 CSV로 저장해 앱 로딩을 가볍게 함
+- [x] 정제 결과를 `parquet`로 저장 (0.11 MB)
 
 검증 체크
-- 시간 슬롯 개수 일관성(예: 44개)
-- 역/호선/요일/방향 조합별 row count 정상 여부
+- [x] 시간 슬롯 개수: 39개 확인
+- [x] 호선: 1~8호선 (245개 역)
+- [x] 요일: 평일, 토요일, 일요일 (각 21,723개)
+- [x] 혼잡도 범위: 0.0 ~ 164.3
+- [x] 역/호선/요일/방향 조합별 row count 검증 완료
 
 산출물
-- 정제 스크립트(ETL)
-- 정제 데이터 파일(예: `data_clean.parquet`)
+- [x] 정제 스크립트: `src/etl.py`
+- [x] 정제 데이터: `data/processed/congestion_clean.parquet`
+- [x] 패키지 의존성: `requirements.txt`
 
 ---
 
